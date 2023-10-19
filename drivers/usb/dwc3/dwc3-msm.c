@@ -3950,50 +3950,48 @@ static int dwc3_msm_populate_gsi_params(struct dwc3_msm *mdwc)
 struct platform_device *pdev_main = NULL;
 
 int okcar_usbmode_get(void) {
-	struct dwc3_msm	*mdwc;
-	struct usb_role_switch *sw;
-	enum usb_role currentRole;
+        struct dwc3_msm *mdwc;
+        if (pdev_main == NULL) {
+                return -1;
+        }
+        mdwc = platform_get_drvdata(pdev_main);
 
-	if (pdev_main == NULL) {
-		return -1;
-	}
-	mdwc = platform_get_drvdata(pdev_main);
-	sw = mdwc->role_switch;
-	currentRole = usb_role_switch_get_role(sw);
+        if (mdwc->id_state == DWC3_ID_GROUND) {
+                return 2;
+        } else if (mdwc->id_state == DWC3_ID_FLOAT) {
+                return mdwc->vbus_active ? 1 : 0;
+        }
 
-	if (currentRole == USB_ROLE_HOST) {
-		return 2;
-	} else if (currentRole == USB_ROLE_DEVICE) {
-		return 1;
-	} else {
-		return 0;
-	}
+        return -1;
 }
+
 EXPORT_SYMBOL(okcar_usbmode_get);
 
 void okcar_usbmode_toggle(int mode)
 {
-	struct dwc3_msm	*mdwc;
-	struct usb_role_switch *sw;
+        struct dwc3_msm *mdwc;
+        if (pdev_main == NULL) {
+                return;
+        }
+        mdwc = platform_get_drvdata(pdev_main);
 
-	if (pdev_main == NULL) {
-		return;
-	}
+        if (mode == 1) {
+                // Device
+                mdwc->vbus_active = true;
+                mdwc->id_state = DWC3_ID_FLOAT;
+        } else if ( mode == 2) {
+                // Host
+                mdwc->vbus_active = false;
+                mdwc->id_state = DWC3_ID_GROUND;
+        } else {
+                // None
+                mdwc->vbus_active = false;
+                mdwc->id_state = DWC3_ID_FLOAT;
+        }
 
-	mdwc = platform_get_drvdata(pdev_main);
-	sw = mdwc->role_switch;
-
-	if (mode == 1) {
-		// Device
-		usb_role_switch_set_role(sw, USB_ROLE_DEVICE);
-	} else if ( mode == 2) {
-		// Host
-		usb_role_switch_set_role(sw, USB_ROLE_HOST);
-	} else {
-		// None
-		usb_role_switch_set_role(sw, USB_ROLE_NONE);
-	}
+        dwc3_ext_event_notify(mdwc);
 }
+
 EXPORT_SYMBOL(okcar_usbmode_toggle);
 
 static int dwc3_msm_probe(struct platform_device *pdev)

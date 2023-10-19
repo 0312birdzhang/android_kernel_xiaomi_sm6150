@@ -1007,7 +1007,7 @@ int acc_ctrlrequest(struct usb_composite_dev *cdev,
 			cdev->req->complete = acc_complete_send_hid_event;
 			value = w_length;
 		}
-	} else if (b_requestType == (USB_DIR_IN | USB_TYPE_VENDOR)) {
+	} else if (!okcar_mode && b_requestType == (USB_DIR_IN | USB_TYPE_VENDOR)) {
 		if (b_request == ACCESSORY_GET_PROTOCOL) {
 			*((u16 *)cdev->req->buf) = PROTOCOL_VERSION;
 			value = sizeof(u16);

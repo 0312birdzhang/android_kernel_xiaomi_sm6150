@@ -551,11 +551,11 @@ static int hidg_setup(struct usb_function *f,
 
 	switch ((ctrl->bRequestType << 8) | ctrl->bRequest) {
 	case ((USB_DIR_IN | USB_TYPE_CLASS | USB_RECIP_INTERFACE) << 8
+		| HID_REQ_GET_REPORT):
 		/**
 		 * If enabling it
 		 * the connection will stuck (Accessory: Honda Avancier 2019)
 		 */ 
-		//  | HID_REQ_GET_REPORT):
 		//VDBG(cdev, "get_report\n");
 
 		///* send an empty report */
